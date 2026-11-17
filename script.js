@@ -82,38 +82,173 @@ window.addEventListener('pointermove',e=>{if(!cursorGlow||e.pointerType!=='mouse
 if('IntersectionObserver'in window){const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll('.stats-strip,.section-heading,.feature-card,.fact-banner,.about-copy,.about-orb').forEach(el=>{el.classList.add('reveal-on-scroll');revealObserver.observe(el)})}
 grid.addEventListener('pointermove',e=>{const card=e.target.closest('.country-card');if(!card||e.pointerType!=='mouse')return;const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;card.style.setProperty('--px',`${x/r.width*100}%`);card.style.setProperty('--py',`${y/r.height*100}%`);card.style.transform=`perspective(800px) rotateX(${(y/r.height-.5)*-4}deg) rotateY(${(x/r.width-.5)*4}deg) translateY(-4px)`});grid.addEventListener('pointerleave',e=>{const card=e.target.closest('.country-card');if(card)card.style.transform=''},true);
 updateFavCount();loadCountries();
-// Quiz mit 15 Fragen; pro Runde werden zehn zufällig ausgewählt.
-const quizBank=[
- ['Welche Flagge besteht aus zwei übereinanderliegenden Dreiecken?',['Bhutan','Nepal','Sri Lanka','Mongolei'],1,'Die Flagge Nepals besteht aus zwei übereinander angeordneten dreieckigen Wimpeln.'],
- ['Welche Stadt ist die Hauptstadt Australiens?',['Sydney','Melbourne','Canberra','Perth'],2,'Canberra ist die Hauptstadt Australiens – nicht Sydney oder Melbourne.'],
- ['Auf welchem Kontinent liegt die Sahara?',['Asien','Afrika','Südamerika','Australien'],1,'Die Sahara liegt im Norden Afrikas.'],
- ['Welcher Ozean ist flächenmäßig der größte?',['Atlantischer Ozean','Indischer Ozean','Arktischer Ozean','Pazifischer Ozean'],3,'Der Pazifische Ozean ist der größte Ozean der Erde.'],
- ['Welches Land ist für Kyoto und den Berg Fuji bekannt?',['China','Japan','Südkorea','Thailand'],1,'Kyoto und der Berg Fuji liegen in Japan.'],
- ['Welche Sprache ist die Amtssprache Brasiliens?',['Spanisch','Portugiesisch','Französisch','Englisch'],1,'Brasilien ist das größte portugiesischsprachige Land der Welt.'],
- ['Wie heißt die Hauptstadt Islands?',['Oslo','Helsinki','Reykjavík','Tallinn'],2,'Die Hauptstadt Islands heißt Reykjavík.'],
- ['Welches dieser Länder hat keinen Zugang zum Meer?',['Portugal','Mongolei','Vietnam','Norwegen'],1,'Die Mongolei liegt zwischen Russland und China und ist ein Binnenstaat.'],
- ['Auf welchem Kontinent liegt Kenia?',['Afrika','Europa','Asien','Südamerika'],0,'Kenia liegt in Ostafrika.'],
- ['Welcher Staat ist vollständig vom Gebiet Italiens umgeben?',['Monaco','Andorra','San Marino','Luxemburg'],2,'San Marino ist ein unabhängiger Enklavenstaat innerhalb Italiens.'],
- ['Welche Meerenge liegt zwischen Spanien und Marokko?',['Beringstraße','Straße von Gibraltar','Ärmelkanal','Bosporus'],1,'Die Straße von Gibraltar verbindet den Atlantik mit dem Mittelmeer.'],
- ['Welches Land nimmt den östlichen Teil der Insel Hispaniola ein?',['Kuba','Dominikanische Republik','Haiti','Jamaika'],1,'Die Dominikanische Republik liegt im Osten der Insel Hispaniola; Haiti liegt im Westen.'],
- ['Welcher große Fluss fließt durch Ägypten?',['Amazonas','Donau','Nil','Mississippi'],2,'Der Nil ist der wichtigste Fluss Ägyptens und eine zentrale Wasserquelle des Landes.'],
- ['Welcher Kontinent ist der kälteste?',['Europa','Antarktika','Asien','Nordamerika'],1,'Antarktika ist der kälteste Kontinent der Erde.'],
- ['Wie heißt die Hauptstadt Kanadas?',['Toronto','Vancouver','Ottawa','Montreal'],2,'Ottawa ist die Hauptstadt Kanadas.'],
-
- ['Welches Land hat auf der Karte ungefähr die Form eines Stiefels?',['Griechenland','Italien','Spanien','Kroatien'],1,'Italien ist für seine charakteristische Stiefelform bekannt.'],
- ['Welcher See ist der tiefste der Welt?',['Victoriasee','Baikalsee','Titicacasee','Michigansee'],1,'Der Baikalsee in Russland ist der tiefste See der Erde.'],
- ['Welche Stadt wird oft als „Stadt des ewigen Frühlings“ bezeichnet?',['Lissabon','Quito','Kairo','Berlin'],1,'Quito liegt nahe am Äquator; durch seine Höhenlage herrscht dort ein mildes Klima.'],
- ['In welchem Land befindet sich das Taj Mahal?',['Pakistan','Indien','Nepal','Bangladesch'],1,'Das Taj Mahal steht in der indischen Stadt Agra.'],
- ['Welcher Kontinent wird sowohl vom Äquator als auch vom südlichen Wendekreis durchquert?',['Europa','Afrika','Antarktika','Nordamerika'],1,'Afrika wird vom Äquator und vom südlichen Wendekreis durchquert.'],
- ['Welches Land gilt als Heimat der Pizza?',['Frankreich','Italien','Deutschland','Griechenland'],1,'Die moderne Pizza entstand in Neapel in Italien.'],
- ['Wie heißt der höchste Berg Afrikas?',['Elbrus','Kilimandscharo','Mont Blanc','Mount Kenya'],1,'Der Kilimandscharo liegt in Tansania und ist der höchste Berg Afrikas.'],
- ['In welchem Land liegt die Hauptstadt Budapest?',['Rumänien','Ungarn','Bulgarien','Serbien'],1,'Budapest ist die Hauptstadt Ungarns.'],
- ['Welcher Ozean liegt zwischen Afrika und Australien?',['Atlantischer Ozean','Pazifischer Ozean','Indischer Ozean','Arktischer Ozean'],2,'Der Indische Ozean liegt zwischen Afrika, Asien und Australien.'],
- ['In welchem Land befindet sich die Stadt Marrakesch?',['Algerien','Marokko','Tunesien','Ägypten'],1,'Marrakesch ist eine bekannte Stadt in Marokko.'],
- ['Welches Land ist flächenmäßig das größte der Welt?',['Kanada','China','Russland','USA'],2,'Russland ist das größte Land der Erde.'],
- ['Wie heißt die Hauptstadt Neuseelands?',['Auckland','Wellington','Christchurch','Sydney'],1,'Wellington ist die Hauptstadt Neuseelands.'],
- ['Welcher Staat liegt auf der Insel Madagaskar?',['Madagaskar','Mauritius','Seychellen','Komoren'],0,'Der Staat Madagaskar nimmt den größten Teil der gleichnamigen Insel ein.'],
- ['Welcher Fluss fließt durch Paris?',['Rhein','Themse','Seine','Rhône'],2,'Die Seine fließt durch Paris.'],
- ['Welches Land wird oft als „Land der aufgehenden Sonne“ bezeichnet?',['China','Japan','Thailand','Südkorea'],1,'Japan wird wegen seiner Lage östlich des asiatischen Festlands so genannt.']
-];
-(()=>{const panel=document.getElementById('quizPanel');if(!panel)return;let deck=[],index=0,score=0,locked=false;const $=id=>document.getElementById(id);function start(){deck=[...quizBank].sort(()=>Math.random()-.5).slice(0,10);index=0;score=0;render()}function render(){locked=false;const q=deck[index];$('quizCounter').textContent=`FRAGE ${index+1} / ${deck.length}`;$('quizScore').textContent=`${score} Punkte`;$('quizProgress').style.width=`${index/deck.length*100}%`;$('quizQuestion').textContent=q[0];$('quizFeedback').textContent='Wähle eine Antwort aus.';$('quizNext').disabled=true;$('quizNext').textContent=index===deck.length-1?'Ergebnis →':'Weiter →';$('quizOptions').innerHTML=q[1].map((v,i)=>`<button class="quiz-option" data-answer="${i}"><span>${'ABCD'[i]}</span>${v}</button>`).join('')}function answer(n){if(locked)return;locked=true;const q=deck[index],correct=n===q[2];if(correct)score++;document.querySelectorAll('.quiz-option').forEach((b,i)=>{b.disabled=true;if(i===q[2])b.classList.add('correct');else if(i===n)b.classList.add('wrong')});$('quizFeedback').textContent=(correct?'Richtig! ':'Nicht ganz. ')+q[3];$('quizScore').textContent=`${score} Punkte`;$('quizNext').disabled=false;$('quizProgress').style.width=`${(index+1)/deck.length*100}%`}function result(){const pct=score/deck.length,title=pct>=.8?'Hervorragendes Ergebnis!':pct>=.5?'Gut gemacht!':'Zeit, neue Länder zu entdecken!';panel.innerHTML=`<div class="quiz-result"><div class="quiz-trophy">${pct>=.8?'🏆':pct>=.5?'🌍':'🧭'}</div><div class="kicker">DEIN ERGEBNIS</div><h3>${title}</h3><div class="quiz-final-score">${score}<small> / ${deck.length}</small></div><p>${pct>=.8?'Du kennst dich in Geografie richtig gut aus.':pct>=.5?'Du hast schon eine gute Grundlage – entdecke weiter die Welt.':'Jede falsche Antwort ist eine Chance, etwas Neues zu lernen. Versuch es noch einmal!'}</p><button class="button button-primary" id="quizRestart">↻ Noch einmal spielen</button></div>`;$('quizRestart').addEventListener('click',()=>{panel.innerHTML='<div class="quiz-topline"><span id="quizCounter"></span><span id="quizScore"></span></div><div class="quiz-progress"><span id="quizProgress"></span></div><div class="quiz-question" id="quizQuestion"></div><div class="quiz-options" id="quizOptions"></div><div class="quiz-bottom"><span id="quizFeedback"></span><button class="button button-primary" id="quizNext" disabled></button></div>';attach();start()})}function attach(){$('quizOptions').addEventListener('click',e=>{const b=e.target.closest('[data-answer]');if(b)answer(Number(b.dataset.answer))});$('quizNext').addEventListener('click',()=>{if(!locked)return;if(index<deck.length-1){index++;render()}else result()})}attach();start()})();
+// Dynamisches Quiz: Schwierigkeitsgrade, zufällige Fragen und dauerhaft gespeicherte Frage-Historie.
+(()=>{
+ const panel=document.getElementById('quizPanel');
+ const source=window.WORLD_COUNTRIES||[];
+ if(!panel||!source.length)return;
+ const countries=source.filter(c=>c&&c.cca3&&c.name&&c.name.common&&c.independent!==false);
+ const $=id=>document.getElementById(id);
+ const pick=a=>a[Math.floor(Math.random()*a.length)];
+ const sample=(a,n)=>{const pool=[...a],out=[];while(pool.length&&out.length<n){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0])}return out};
+ const clean=a=>[...new Set(a.filter(x=>x!==undefined&&x!==null&&String(x).trim()).map(x=>String(x).trim()))];
+ const name=c=>c.name.common;
+ const values=(obj)=>obj&&typeof obj==='object'?Object.values(obj).filter(Boolean):[];
+ const capital=c=>Array.isArray(c.capital)?c.capital[0]:'';
+ const currency=c=>{const x=values(c.currencies);return x[0]&&x[0].name||''};
+ const language=c=>values(c.languages)[0]||'';
+ const timezone=c=>Array.isArray(c.timezones)?c.timezones[0]||'':'';
+ const calling=c=>c.idd&&c.idd.root&&c.idd.suffixes&&c.idd.suffixes.length?c.idd.root+c.idd.suffixes[0]:'';
+ const regions=clean(countries.map(c=>c.region));
+ const subregions=clean(countries.map(c=>c.subregion));
+ const timezones=clean(countries.flatMap(c=>Array.isArray(c.timezones)?c.timezones:[]));
+ const languages=clean(countries.flatMap(c=>values(c.languages)));
+ const currencies=clean(countries.flatMap(c=>values(c.currencies).map(x=>x.name)));
+ const caps=clean(countries.map(capital));
+ const calls=clean(countries.map(calling));
+ const levelInfo={
+  leicht:{label:'Leicht',desc:'Hauptstädte und Kontinente – ideal zum Einstieg.',types:['capital','region'],count:10},
+  mittel:{label:'Mittel',desc:'Sprachen, Währungen und geografische Besonderheiten.',types:['language','currency','landlocked','subregion'],count:10},
+  schwer:{label:'Schwer',desc:'Zeitzonen, Grenzen, Telefonvorwahlen und Größenvergleiche.',types:['timezone','borders','calling','area','population'],count:10},
+  ultra:{label:'Ultra',desc:'Knifflige Vergleiche und Detailwissen aus der Länderdatenbank.',types:['area','population','borders','calling','timezone'],count:10}
+ };
+ let level='leicht',deck=[],index=0,score=0,locked=false;
+ const fallbackSeen=new Set();
+ const DB_NAME='weltwissen-quiz-history-v2',STORE='seen';
+ let dbPromise=null;
+ function openDB(){
+  if(!('indexedDB' in window))return Promise.resolve(null);
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise(resolve=>{
+   try{
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE)};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>resolve(null);
+   }catch(e){resolve(null)}
+  });
+  return dbPromise;
+ }
+ function hashId(s){
+  let h1=0x811c9dc5,h2=0x9e3779b9;
+  for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,0x01000193);h2=Math.imul(h2^c,0x85ebca6b)}
+  return (h1>>>0).toString(36)+(h2>>>0).toString(36);
+ }
+ async function wasSeen(id){
+  const key=hashId(id),db=await openDB();
+  if(!db){
+   try{const raw=JSON.parse(localStorage.getItem('weltwissen-quiz-seen-v2')||'[]');raw.forEach(x=>fallbackSeen.add(x))}catch(e){}
+   return fallbackSeen.has(key);
+  }
+  return new Promise(resolve=>{try{const req=db.transaction(STORE,'readonly').objectStore(STORE).get(key);req.onsuccess=()=>resolve(!!req.result);req.onerror=()=>resolve(false)}catch(e){resolve(false)}});
+ }
+ async function markSeen(id){
+  const key=hashId(id),db=await openDB();
+  if(!db){
+   fallbackSeen.add(key);
+   try{localStorage.setItem('weltwissen-quiz-seen-v2',JSON.stringify([...fallbackSeen]))}catch(e){}
+   return;
+  }
+  await new Promise(resolve=>{try{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(1,key);tx.oncomplete=resolve;tx.onerror=resolve}catch(e){resolve()}});
+ }
+ function question(type){
+  let c,opts,answer,stem,explain,id,arr;
+  if(type==='capital'){
+   c=pick(countries.filter(x=>capital(x)));
+   opts=sample(clean(countries.filter(x=>x.cca3!==c.cca3).map(capital)),3);
+   if(!c||!opts||opts.length<3)return null;
+   opts.push(capital(c));answer=3;stem='Welche Stadt ist die Hauptstadt von '+name(c)+'?';explain=capital(c)+' ist die Hauptstadt von '+name(c)+'.';id='capital:'+c.cca3;
+  }else if(type==='region'||type==='subregion'){
+   c=pick(countries.filter(x=>x[type]&&String(x[type]).trim()));
+   arr=type==='region'?regions:subregions;
+   if(!c||arr.length<4)return null;
+   opts=sample(arr.filter(x=>x!==c[type]),3);if(opts.length<3)return null;
+   opts.push(c[type]);answer=3;stem='Zu welcher geografischen '+(type==='region'?'Großregion':'Teilregion')+' gehört '+name(c)+'?';explain=name(c)+' wird der Region '+c[type]+' zugeordnet.';id=type+':'+c.cca3;
+  }else if(type==='language'||type==='currency'){
+   c=pick(countries.filter(x=>type==='language'?language(x):currency(x)));
+   if(!c)return null;
+   const correct=type==='language'?language(c):currency(c);
+   arr=type==='language'?languages:currencies;
+   opts=sample(arr.filter(x=>x!==correct),3);if(opts.length<3)return null;
+   opts.push(correct);answer=3;stem='Welche '+(type==='language'?'Sprache':'Währung')+' ist in '+name(c)+' als '+(type==='language'?'Amtssprache':'Währung')+' verzeichnet?';explain=correct+' ist in den Länderdaten für '+name(c)+' aufgeführt.';id=type+':'+c.cca3;
+  }else if(type==='timezone'||type==='calling'){
+   c=pick(countries.filter(x=>type==='timezone'?timezone(x):calling(x)));
+   if(!c)return null;
+   const correct=type==='timezone'?timezone(c):calling(c);
+   arr=type==='timezone'?timezones:calls;
+   opts=sample(arr.filter(x=>x!==correct),3);if(opts.length<3)return null;
+   opts.push(correct);answer=3;stem='Welche '+(type==='timezone'?'Zeitzone':'internationale Telefonvorwahl')+' gehört zu '+name(c)+'?';explain+'';
+   explain=correct+' ist für '+name(c)+' in der Datenbank angegeben.';id=type+':'+c.cca3;
+  }else if(type==='borders'){
+   c=pick(countries.filter(x=>Array.isArray(x.borders)));
+   if(!c)return null;
+   const correct=c.borders.length;
+   const nums=clean(countries.map(x=>Array.isArray(x.borders)?x.borders.length:null).filter(x=>x!==null&&x!==correct).map(String));
+   opts=sample(nums,3);if(opts.length<3)return null;
+   opts.push(String(correct));answer=3;stem='Wie viele Landnachbarn hat '+name(c)+' laut Länderdatenbank?';explain=name(c)+' hat '+correct+' erfasste Landnachbarn.';id='borders:'+c.cca3;
+  }else if(type==='landlocked'){
+   const yes=countries.filter(x=>x.landlocked===true),no=countries.filter(x=>x.landlocked===false);
+   c=pick(yes);if(!c||no.length<3)return null;
+   const chosen=[c,...sample(no,3)];opts=chosen.map(name);answer=0;stem='Welches dieser Länder ist ein Binnenstaat, also ohne direkten Zugang zum Meer?';explain=name(c)+' ist ein Binnenstaat.';id='landlocked:'+chosen.map(x=>x.cca3).sort().join('-');
+   const shuffled=opts.map((v,i)=>({v,correct:i===answer})).sort(()=>Math.random()-.5);opts=shuffled.map(x=>x.v);answer=shuffled.findIndex(x=>x.correct);
+  }else if(type==='area'||type==='population'){
+   const eligible=countries.filter(x=>Number(x[type])>0);
+   const chosen=sample(eligible,4);if(chosen.length<4)return null;
+   const sorted=[...chosen].sort((a,b)=>Number(b[type])-Number(a[type]));
+   c=sorted[0];opts=chosen.map(name);answer=opts.indexOf(name(c));
+   stem='Welches dieser Länder hat '+(type==='area'?'die größte Fläche':'die größte Bevölkerung')+'?';
+   const formatted=type==='area'?Math.round(c.area).toLocaleString('de-DE')+' km²':Math.round(c.population).toLocaleString('de-DE')+' Einwohner';
+   explain=name(c)+' liegt in den verwendeten Daten vorn ('+formatted+').';id=type+':'+chosen.map(x=>x.cca3).sort().join('-');
+  }else return null;
+  if(type!=='landlocked'){const shuffled=opts.map((v,i)=>({v,correct:i===answer})).sort(()=>Math.random()-.5);opts=shuffled.map(x=>x.v);answer=shuffled.findIndex(x=>x.correct)}
+  return {id,question:stem,options:opts,correct:answer,feedback:explain};
+ }
+ async function makeDeck(){
+  const out=[],used=new Set(),types=levelInfo[level].types;
+  for(let tries=0;out.length<10&&tries<3500;tries++){
+   const q=question(pick(types));
+   if(!q||used.has(q.id))continue;
+   used.add(q.id);
+   if(await wasSeen(q.id))continue;
+   await markSeen(q.id);
+   out.push(q);
+  }
+  return out;
+ }
+ function showStart(){
+  panel.innerHTML='<div class="quiz-start"><div class="quiz-start-kicker">WÄHLE DEINE HERAUSFORDERUNG</div><h3>Wie schwierig darf es sein?</h3><p>Jede Runde enthält zehn Fragen. Dein Fortschritt und bereits verwendete Fragen bleiben auf diesem Gerät gespeichert.</p><div class="quiz-levels">'+
+   Object.keys(levelInfo).map((key,i)=>'<button class="quiz-level '+(level===key?'selected':'')+'" data-level="'+key+'"><span class="quiz-level-number">0'+(i+1)+'</span><strong>'+levelInfo[key].label+'</strong><small>'+levelInfo[key].desc+'</small></button>').join('')+
+   '</div><button class="button button-primary quiz-start-button" id="quizStart">Quiz starten →</button><div class="quiz-history-note">♾️ Zufällige Fragen aus der Länderdatenbank · Keine Wiederholung derselben Frage</div></div>';
+  panel.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>{level=b.dataset.level;showStart()}));
+  $('quizStart').addEventListener('click',start);
+ }
+ function render(){
+  locked=false;const q=deck[index];
+  panel.innerHTML='<div class="quiz-topline"><span id="quizCounter">FRAGE '+(index+1)+' / '+deck.length+' · '+levelInfo[level].label.toUpperCase()+'</span><span id="quizScore">'+score+' PUNKTE</span></div><div class="quiz-progress"><span id="quizProgress" style="width:'+(index/deck.length*100)+'%"></span></div><div class="quiz-question" id="quizQuestion"></div><div class="quiz-options" id="quizOptions">'+q.options.map((v,i)=>'<button class="quiz-option" data-answer="'+i+'"><span>'+'ABCD'[i]+'</span>'+v+'</button>').join('')+'</div><div class="quiz-bottom"><span id="quizFeedback">Wähle eine Antwort aus.</span><button class="button button-primary" id="quizNext" disabled>' +(index===deck.length-1?'Ergebnis →':'Weiter →')+'</button></div>';
+  $('quizQuestion').textContent=q.question;
+  $('quizOptions').addEventListener('click',e=>{const b=e.target.closest('[data-answer]');if(b)answer(Number(b.dataset.answer))});
+  $('quizNext').addEventListener('click',()=>{if(!locked)return;if(index<deck.length-1){index++;render()}else result()});
+ }
+ function answer(n){
+  if(locked)return;locked=true;const q=deck[index],correct=n===q.correct;if(correct)score++;
+  panel.querySelectorAll('.quiz-option').forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add('correct');else if(i===n)b.classList.add('wrong')});
+  $('quizFeedback').textContent=(correct?'Richtig! ':'Nicht ganz. ')+q.feedback;
+  $('quizScore').textContent=score+' PUNKTE';$('quizNext').disabled=false;
+  $('quizProgress').style.width=((index+1)/deck.length*100)+'%';
+ }
+ function result(){
+  const pct=score/deck.length,title=pct>=.8?'Hervorragendes Ergebnis!':pct>=.5?'Gut gemacht!':'Zeit, weiter zu entdecken!';
+  panel.innerHTML='<div class="quiz-result"><div class="quiz-trophy">'+(pct>=.8?'🏆':pct>=.5?'🌍':'🧭')+'</div><div class="kicker">DEIN ERGEBNIS · '+levelInfo[level].label.toUpperCase()+'</div><h3>'+title+'</h3><div class="quiz-final-score">'+score+'<small> / '+deck.length+'</small></div><p>'+ (pct>=.8?'Du hast diese Schwierigkeitsstufe stark gemeistert.':pct>=.5?'Eine gute Runde. Mit jeder Frage wächst dein Weltwissen.':'Jede Runde bringt dich weiter. Versuche es noch einmal!')+'</p><button class="button button-primary" id="quizAgain">↻ Neue Fragen spielen</button><button class="button button-glass quiz-change-level" id="quizChange">Schwierigkeitsgrad ändern</button></div>';
+  $('quizAgain').addEventListener('click',start);$('quizChange').addEventListener('click',showStart);
+ }
+ async function start(){
+  const btn=$('quizStart');if(btn){btn.disabled=true;btn.textContent='Fragen werden vorbereitet …'}
+  deck=await makeDeck();index=0;score=0;
+  if(deck.length<10){
+   panel.innerHTML='<div class="quiz-result"><div class="quiz-trophy">🌍</div><h3>Alle verfügbaren Fragen gespielt</h3><p>Für diese Stufe sind auf diesem Gerät momentan keine zehn neuen Fragen mehr verfügbar. Wähle eine andere Schwierigkeit.</p><button class="button button-primary" id="quizChange">Schwierigkeitsgrad ändern</button></div>';
+   $('quizChange').addEventListener('click',showStart);return;
+  }
+  render();
+ }
+ showStart();
+})();
