@@ -82,7 +82,7 @@ window.addEventListener('pointermove',e=>{if(!cursorGlow||e.pointerType!=='mouse
 if('IntersectionObserver'in window){const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll('.stats-strip,.section-heading,.feature-card,.fact-banner,.about-copy,.about-orb').forEach(el=>{el.classList.add('reveal-on-scroll');revealObserver.observe(el)})}
 grid.addEventListener('pointermove',e=>{const card=e.target.closest('.country-card');if(!card||e.pointerType!=='mouse')return;const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;card.style.setProperty('--px',`${x/r.width*100}%`);card.style.setProperty('--py',`${y/r.height*100}%`);card.style.transform=`perspective(800px) rotateX(${(y/r.height-.5)*-4}deg) rotateY(${(x/r.width-.5)*4}deg) translateY(-4px)`});grid.addEventListener('pointerleave',e=>{const card=e.target.closest('.country-card');if(card)card.style.transform=''},true);
 updateFavCount();loadCountries();
-// Dynamisches Quiz: Schwierigkeitsgrade, zufällige Fragen und dauerhaft gespeicherte Frage-Historie.
+// Dynamisches Quiz: Schwierigkeitsgrade und zufällige Fragen; die Historie gilt nur bis zum Neuladen.
 (()=>{
  const panel=document.getElementById('quizPanel');
  const source=window.WORLD_COUNTRIES||[];
@@ -113,44 +113,9 @@ updateFavCount();loadCountries();
   ultra:{label:'Ultra',desc:'Knifflige Vergleiche und Detailwissen aus der Länderdatenbank.',types:['area','population','borders','calling','timezone'],count:10}
  };
  let level='leicht',deck=[],index=0,score=0,locked=false;
- const fallbackSeen=new Set();
- const DB_NAME='weltwissen-quiz-history-v2',STORE='seen';
- let dbPromise=null;
- function openDB(){
-  if(!('indexedDB' in window))return Promise.resolve(null);
-  if(dbPromise)return dbPromise;
-  dbPromise=new Promise(resolve=>{
-   try{
-    const req=indexedDB.open(DB_NAME,1);
-    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE)};
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>resolve(null);
-   }catch(e){resolve(null)}
-  });
-  return dbPromise;
- }
- function hashId(s){
-  let h1=0x811c9dc5,h2=0x9e3779b9;
-  for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,0x01000193);h2=Math.imul(h2^c,0x85ebca6b)}
-  return (h1>>>0).toString(36)+(h2>>>0).toString(36);
- }
- async function wasSeen(id){
-  const key=hashId(id),db=await openDB();
-  if(!db){
-   try{const raw=JSON.parse(localStorage.getItem('weltwissen-quiz-seen-v2')||'[]');raw.forEach(x=>fallbackSeen.add(x))}catch(e){}
-   return fallbackSeen.has(key);
-  }
-  return new Promise(resolve=>{try{const req=db.transaction(STORE,'readonly').objectStore(STORE).get(key);req.onsuccess=()=>resolve(!!req.result);req.onerror=()=>resolve(false)}catch(e){resolve(false)}});
- }
- async function markSeen(id){
-  const key=hashId(id),db=await openDB();
-  if(!db){
-   fallbackSeen.add(key);
-   try{localStorage.setItem('weltwissen-quiz-seen-v2',JSON.stringify([...fallbackSeen]))}catch(e){}
-   return;
-  }
-  await new Promise(resolve=>{try{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(1,key);tx.oncomplete=resolve;tx.onerror=resolve}catch(e){resolve()}});
- }
+ const sessionSeen=new Set();
+ async function wasSeen(id){return sessionSeen.has(id)}
+ async function markSeen(id){sessionSeen.add(id)}
  function question(type){
   let c,opts,answer,stem,explain,id,arr;
   if(type==='capital'){
@@ -216,9 +181,9 @@ updateFavCount();loadCountries();
   return out;
  }
  function showStart(){
-  panel.innerHTML='<div class="quiz-start"><div class="quiz-start-kicker">WÄHLE DEINE HERAUSFORDERUNG</div><h3>Wie schwierig darf es sein?</h3><p>Jede Runde enthält zehn Fragen. Dein Fortschritt und bereits verwendete Fragen bleiben auf diesem Gerät gespeichert.</p><div class="quiz-levels">'+
+  panel.innerHTML='<div class="quiz-start"><div class="quiz-start-kicker">WÄHLE DEINE HERAUSFORDERUNG</div><h3>Wie schwierig darf es sein?</h3><p>Jede Runde enthält zehn Fragen. Nach einem Neuladen kannst du wieder von vorne spielen.</p><div class="quiz-levels">'+
    Object.keys(levelInfo).map((key,i)=>'<button class="quiz-level '+(level===key?'selected':'')+'" data-level="'+key+'"><span class="quiz-level-number">0'+(i+1)+'</span><strong>'+levelInfo[key].label+'</strong><small>'+levelInfo[key].desc+'</small></button>').join('')+
-   '</div><button class="button button-primary quiz-start-button" id="quizStart">Quiz starten →</button><div class="quiz-history-note">♾️ Zufällige Fragen aus der Länderdatenbank · Keine Wiederholung derselben Frage</div></div>';
+   '</div><button class="button button-primary quiz-start-button" id="quizStart">Quiz starten →</button><div class="quiz-history-note">♻️ Zufällige Fragen aus der Länderdatenbank · Wiederholungen nach Neuladen möglich</div></div>';
   panel.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>{level=b.dataset.level;showStart()}));
   $('quizStart').addEventListener('click',start);
  }
