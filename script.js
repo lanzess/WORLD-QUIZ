@@ -210,7 +210,11 @@ updateFavCount();loadCountries();
   const btn=$('quizStart');if(btn){btn.disabled=true;btn.textContent='Fragen werden vorbereitet …'}
   deck=await makeDeck();index=0;score=0;
   if(deck.length<10){
-   panel.innerHTML='<div class="quiz-result"><div class="quiz-trophy">🌍</div><h3>Alle verfügbaren Fragen gespielt</h3><p>Für diese Stufe sind auf diesem Gerät momentan keine zehn neuen Fragen mehr verfügbar. Wähle eine andere Schwierigkeit.</p><button class="button button-primary" id="quizChange">Schwierigkeitsgrad ändern</button></div>';
+   sessionSeen.clear();
+   deck=await makeDeck();
+  }
+  if(!deck.length){
+   panel.innerHTML='<div class="quiz-result"><div class="quiz-trophy">🌍</div><h3>Quiz konnte nicht geladen werden</h3><p>Bitte lade die Seite neu und versuche es erneut.</p><button class="button button-primary" id="quizChange">Zurück</button></div>';
    $('quizChange').addEventListener('click',showStart);return;
   }
   render();
