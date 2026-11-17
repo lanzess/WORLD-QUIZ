@@ -221,3 +221,32 @@ updateFavCount();loadCountries();
  }
  showStart();
 })();
+
+
+/* Motion enhancements: reveal sections and subtle pointer lighting */
+(()=>{
+ const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const revealTargets=document.querySelectorAll('.stats-strip,.section-heading,.explorer,.region-tabs,.catalog-top,.country-grid,.discover-heading,.feature-grid,.fact-banner,.quiz-intro,.quiz-panel,.about-copy,.about-orb');
+ if(!reduce && 'IntersectionObserver' in window){
+  document.body.classList.add('reveal-ready');
+  revealTargets.forEach(el=>el.classList.add(el.matches('.country-grid,.feature-grid')?'reveal-stagger':'reveal'));
+  const observer=new IntersectionObserver(entries=>{
+   entries.forEach(entry=>{
+    if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}
+   });
+  },{threshold:.12,rootMargin:'0px 0px -45px 0px'});
+  revealTargets.forEach(el=>observer.observe(el));
+ }
+ document.querySelectorAll('.country-card').forEach(card=>{
+  card.addEventListener('pointermove',e=>{
+   const r=card.getBoundingClientRect();
+   card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+   card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  },{passive:true});
+ });
+ const progress=document.getElementById('scrollProgress');
+ if(progress){
+  const update=()=>{const max=document.documentElement.scrollHeight-innerHeight;progress.style.width=(max>0?scrollY/max*100:0)+'%'};
+  window.addEventListener('scroll',update,{passive:true});update();
+ }
+})();
