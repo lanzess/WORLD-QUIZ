@@ -381,3 +381,24 @@ body{background-size:180% 180%;animation:pageAtmosphere 24s ease-in-out infinite
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,15px)}to{opacity:1;transform:translate(-50%,0)}}
 @media(max-width:760px){.planet{animation-duration:8s}.country-card:hover{transform:translateY(-3px)}}
 @media(prefers-reduced-motion:reduce){body,.ambient,.hero-content,.hero-visual,.hero-scroll,.planet,.planet>span,.orbit-one,.orbit-two,.planet-label,.star,.pulse-dot,.live-dot,.stats-strip,.fact-icon,.about-orb,.about-orb-inner{animation:none!important}.reveal-ready .reveal,.reveal-ready .reveal-stagger>*{opacity:1;transform:none;transition:none}}
+
+/* EXPANDED ATLAS DATA */
+.world-data-section{max-width:1180px;margin:0 auto;padding:75px 0 45px}
+.world-data-section .section-heading{margin-bottom:28px}
+.world-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.world-metrics article,.world-rankings article{min-width:0;padding:22px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,#101d2c,#0b1420)}
+.world-metrics article>span{display:block;color:#91a4bb;font-size:9px;letter-spacing:1.15px;line-height:1.5;min-height:28px}
+.world-metrics strong{display:block;margin:12px 0 6px;font:800 clamp(20px,2.5vw,29px) Manrope;color:#a5ecd9;overflow-wrap:anywhere}
+.world-metrics small{color:#8393a7;font-size:10px;line-height:1.5}
+.world-rankings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:13px}
+.world-rankings article>.kicker{margin-bottom:15px}
+.ranking-list{display:grid;gap:0}
+.ranking-row{display:grid;grid-template-columns:25px minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #ffffff10;font-size:11px}
+.ranking-number{color:#a5ecd9;font:700 10px Manrope}
+.ranking-row b{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ranking-row>span:last-child{color:#91a4bb;font-size:10px;text-align:right}
+.world-data-section .data-note{line-height:1.7;margin-top:16px}
+.card-extra{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid #ffffff10;color:#8192a7;font-size:9px}
+.card-extra span:last-child{color:#a5ecd9;white-space:nowrap}
+@media(max-width:900px){.world-data-section{padding:65px 25px 35px}.world-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.world-rankings{grid-template-columns:1fr 1fr}.world-rankings article:last-child{grid-column:1/-1}}
+@media(max-width:600px){.world-data-section{padding:55px 20px 25px}.world-metrics{gap:8px}.world-metrics article{padding:15px}.world-metrics article>span{font-size:8px}.world-metrics strong{font-size:20px}.world-rankings{grid-template-columns:1fr}.world-rankings article:last-child{grid-column:auto}.ranking-row{font-size:10px}.card-extra{font-size:8px}}
